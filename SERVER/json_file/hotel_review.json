@@ -1,0 +1,32 @@
+[
+    {
+      "review_id": 1,
+      "user": {
+        "name": "Alice",
+        "age": 28,
+        "location": "New York"
+      },
+      "rating": 4.5,
+      "comments": "Great experience! The staff was friendly and the room was clean and comfortable."
+    },
+    {
+      "review_id": 2,
+      "user": {
+        "name": "Bob",
+        "age": 35,
+        "location": "London"
+      },
+      "rating": 3.8,
+      "comments": "Good overall, but the Wi-Fi was a bit slow. The location was convenient, though."
+    },
+    {
+      "review_id": 3,
+      "user": {
+        "name": "Charlie",
+        "age": 42,
+        "location": "Tokyo"
+      },
+      "rating": 5.0,
+      "comments": "Exceptional service! I enjoyed every moment of my stay. Highly recommended."
+    }
+  ]
