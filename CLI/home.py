@@ -1,29 +1,21 @@
 import customtkinter
 from customtkinter import *
-import tkinter as ttk
+# import tkinter as ttk
 from tkinter import *
-import tkinter.messagebox
-import sys
+# import tkinter.messagebox
+# import sys
 import sqlite3
 from graph_creation import *
 from add_json import *
 from custom import *
-
-def db_connect():
-    db_path = '../SERVER/db/tkinter.db'  # Replace with the desired SQLite database file path
-    conn = sqlite3.connect(db_path)
-    return conn
+from export import *
+from db_connect import *
+from get_size import *
+from global_var import *
 
 conn = db_connect()
 cursor = conn.cursor()
 
-#-------------------------------#
-# def get_table_size(table):
-#     cursor.execute(f"SELECT page_count * page_size FROM pragma_page_size, pragma_page_count WHERE name = '{table}';")
-#     size = cursor.fetchone()[0]
-#     return size
-
-#-------------------------------#
 #get the table names
 def get_table_name():
     cursor = conn.cursor()
@@ -47,7 +39,7 @@ def show_db(window, table_name, app):
     
     scroll_frame = customtkinter.CTkScrollableFrame(window, orientation="horizontal") 
     scroll_frame.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
-    table_view(scroll_frame, table_name, app)
+    table_view(scroll_frame, table_name, app, window)
 
 #-------------------------------------#
 #fetch the data and the name of the column
@@ -72,28 +64,28 @@ def fetch_data(table_name):
 
 #--------------------------------------#
 #db managment (delete)
-def delete_row(table, id, Dwindow, app):
+def delete_row(table, id, scroll_window, app, window):
     try :
         query = f"DELETE FROM {table} WHERE rowid = {id};"
         cursor.execute(query)
         conn.commit()
-        Dwindow.withdraw()
+        window.withdraw()
         #to reset the rowid
         cursor.execute("VACUUM")
         conn.commit()
         #reload the page
-        show_db(Dwindow, table, app)
+        show_db(scroll_window, table, app)
     except Exception as e:
         print(f"there was a problem during deletion : {e}")
 
-def delete_tab(table, Dwindow, app):
+def delete_tab(table, scroll_window, app, window):
     try:
         drop_table_query = f"DROP TABLE IF EXISTS {table}"
 
         cursor.execute(drop_table_query)
         conn.commit()
         #close the window as the table is no more
-        Dwindow.withdraw()
+        scroll_window.withdraw()
         app.withdraw()
         #reopen the main screen to reload the data
         main_page()
@@ -102,16 +94,16 @@ def delete_tab(table, Dwindow, app):
 
 #-------------------------------------#
 #viewing the data from the db
-def table_view(window, table_name, app):
+def table_view(scroll_frame, table_name, app, window):
     rows, columns = fetch_data(table_name)
 
     #display the names of the column
     Ncolumn = 0
     for column in columns:
-        text = customtkinter.CTkButton(window, text=column, corner_radius=2, hover=False)
+        text = customtkinter.CTkButton(scroll_frame, text=column, corner_radius=2, hover=False, font=custom_font)
         text.grid(row=0, column=Ncolumn, padx=20, pady=20)
         Ncolumn+=1
-    delete = customtkinter.CTkButton(window, text="🗑", corner_radius=2, width=10, fg_color="red", command=lambda :delete_tab(table_name, window, app))
+    delete = customtkinter.CTkButton(scroll_frame, text="🗑", corner_radius=2, width=10, fg_color="red", command=lambda :delete_tab(table_name, scroll_frame, app, window))
     delete.grid(row=0, column=Ncolumn, padx=20, pady=20)
     
     # sep = customtkinter.CTkLabel(fg_color="white", height=1)
@@ -123,10 +115,10 @@ def table_view(window, table_name, app):
         
         for item in items:
             # print(item)
-            text = customtkinter.CTkButton(window, text=item, corner_radius=2, hover=False, fg_color="grey")
+            text = customtkinter.CTkButton(scroll_frame, text=item, corner_radius=2, hover=False, fg_color="grey", font=custom_font)
             text.grid(row=Mrows, column=Mcolumn, padx=20, pady=20)
             Mcolumn+=1
-        delete = customtkinter.CTkButton(window, text="🗑", corner_radius=2, width=10, fg_color="orange", command=lambda id=Mrows:delete_row(table_name, id, window, app))
+        delete = customtkinter.CTkButton(scroll_frame, text="🗑", corner_radius=2, width=10, fg_color="orange", command=lambda id=Mrows:delete_row(table_name, id, scroll_frame, app, window))
         delete.grid(row=Mrows, column=Mcolumn, padx=20, pady=20)
         Mrows+=1
         
@@ -141,6 +133,7 @@ def tab_view(view):
     tabView.add("graph")
     tabView.add("custom")
     tabView.add("add")
+    tabView.add("export")
 
     tabView.set("tables")
 
@@ -152,7 +145,6 @@ def tab_view(view):
 def main_page():
     customtkinter.set_appearance_mode("dark")
     customtkinter.set_default_color_theme("blue")
-
     app = customtkinter.CTk()
     app.geometry("1000x700")
     #------------------------------#
@@ -169,9 +161,9 @@ def main_page():
     #first tab view
     for table in table_names:
         #get the size of the table
-        # size = get_table_size(table)
-
-        table_button = customtkinter.CTkButton(master=tabView.tab("tables"), text=f"nom : {table} \n size : a venir", command=lambda n=table: show_db(tabView, n, app)) 
+        # size = get_table_size(conn, table)
+        size = "None"
+        table_button = customtkinter.CTkButton(master=tabView.tab("tables"), text=f"nom : {table} \n size : {size}", command=lambda n=table: show_db(tabView, n, app), font=custom_font) 
         table_button.grid(row=Vrow, column=Vcolumn, padx=20, pady=20)
         Vcolumn+=1
         temp+=1
@@ -187,6 +179,9 @@ def main_page():
 
     #fourth tab view
     file_explore(tabView.tab("add"))
+    
+    #fifth tab view
+    param_choice(tabView.tab("export"), table_names)
 
     app.mainloop()
 
@@ -194,7 +189,6 @@ def main():
 
     main_page()
     
-
     cursor.close()
     conn.close()
 

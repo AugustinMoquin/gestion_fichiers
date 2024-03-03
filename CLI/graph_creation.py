@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sqlite3
 import customtkinter
+from global_var import *
 
 conn = sqlite3.connect('../SERVER/db/tkinter.db')
 cursor = conn.cursor()
 
-def fetch_data(path, table):
+def fetch_data(table):
     try:
         # Construct the SQL query to select all columns from the table
         select_query = f"SELECT * FROM {table}"

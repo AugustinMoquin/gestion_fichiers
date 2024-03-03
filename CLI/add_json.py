@@ -1,6 +1,7 @@
 from db_insert import *
 import customtkinter
 from tkinter import filedialog
+from global_var import *
 
 def browseFiles():
     filename = filedialog.askopenfilename(initialdir = "/",
