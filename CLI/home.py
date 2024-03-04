@@ -85,7 +85,7 @@ def delete_tab(table, scroll_window, app, window):
         cursor.execute(drop_table_query)
         conn.commit()
         #close the window as the table is no more
-        scroll_window.withdraw()
+        window.withdraw()
         app.withdraw()
         #reopen the main screen to reload the data
         main_page()
